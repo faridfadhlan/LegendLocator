@@ -39,6 +39,7 @@
             android:label="@string/title_activity_detail_legend"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".activities.FormLegendActivity" />
+        <activity android:name=".activities.ImageChooserActivity" />
 
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="wr"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
 
-    <TextView
+    <ImageView
+        android:id="@+id/fotonya"
+        android:src="@drawable/ic_menu_gallery"
+        android:padding="5dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp" />
 
-        android:textColor="#787878"
-        android:textSize="18sp"
-        android:padding="16dp"
-        android:id="@+id/txtView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 </LinearLayout>
