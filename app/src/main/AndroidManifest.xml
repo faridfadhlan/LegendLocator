@@ -24,6 +24,12 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <meta-data android:name="DATABASE" android:value="legendlocator.db" />
+        <meta-data android:name="VERSION" android:value="2" />
+        <meta-data android:name="QUERY_LOG" android:value="true" />
+        <meta-data android:name="DOMAIN_PACKAGE_NAME" android:value="omfarid.com.legendlocator" />
+
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/app_name"
@@ -39,7 +45,6 @@
             android:label="@string/title_activity_detail_legend"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".activities.FormLegendActivity" />
-        <activity android:name=".activities.ImageChooserActivity" />
 
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

@@ -21,7 +21,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,16 +43,15 @@ import com.kbeanie.imagechooser.api.ChosenImage;
 import com.kbeanie.imagechooser.api.ChosenImages;
 import com.kbeanie.imagechooser.api.ImageChooserListener;
 import com.kbeanie.imagechooser.api.ImageChooserManager;
+import com.orm.SugarContext;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import io.realm.Realm;
 import omfarid.com.legendlocator.R;
 import omfarid.com.legendlocator.adapters.FotoAdapter;
 import omfarid.com.legendlocator.models.Legends;
@@ -67,11 +68,11 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     Marker mCurrLocationMarker;
     SupportMapFragment mapFrag;
     MaterialBetterSpinner sp_desa, sp_kategori;
+    EditText nama, deskripsi;
     private static int RESULT_LOAD_IMG = 1;
     List<String> fotos = new ArrayList<String>();
     RecyclerView horizontal_recycler_view;
     FotoAdapter horizontalAdapter;
-    private Realm realm;
 
     private final static String TAG = "ICA";
     private ImageChooserManager imageChooserManager;
@@ -86,6 +87,7 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SugarContext.init(this);
         setContentView(R.layout.activity_form_legend);
         fotos.add("noimage");
         //imageViewThumbnail = (ImageView) findViewById(R.id.gambar);
@@ -100,6 +102,8 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         desa.add("Pinoh Selatan");
         sp_desa = (MaterialBetterSpinner)findViewById(R.id.sp_desa);
         sp_kategori = (MaterialBetterSpinner)findViewById(R.id.sp_kategori);
+        nama = (EditText)findViewById(R.id.txt_nama);
+        deskripsi = (EditText)findViewById(R.id.txt_deskripsi);
 
         List<String> kats = new ArrayList<String>();
         kats.add("Pendidikan");
@@ -136,7 +140,21 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         addphoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chooseImage();
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        //Location Permission already granted
+                        chooseImage();
+                    } else {
+                        //Request Location Permission
+                        checkLocationPermission();
+                    }
+                }
+                else {
+                    chooseImage();
+                }
+
             }
         });
 
@@ -149,40 +167,29 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         });
 
 
+
+
     }
+
 
     private void simpan_legenda() {
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                Legends legenda = realm.createObject(Legends.class);
-                legenda.setId(getNextKey(Legends.class));
-                legenda.setName("Legenda X");
-                legenda.setDescription("Embuh");
-                legenda.setKode_prop("61");
-                legenda.setKode_kab("71");
-                legenda.setKode_kec("031");
-                legenda.setKode_desa("002");
-                legenda.setKat_id("3");
-                legenda.setLatlong("0.344565, 109.676767");
+        Legends legend = new Legends();
+        legend.nama = nama.getText().toString();
+        legend.description = deskripsi.getText().toString();
+        legend.save();
 
-                int id = getNextKey(Photos.class);
-                for(int i=0; i<fotos.size(); i++) {
-                    Photos foto = realm.createObject(Photos.class);
-                    foto.setId(id+i);
-                    foto.setDescription("sjdsdsd");
-                    foto.setDate(new Date());
-                    foto.setPath("asasa");
-                    legenda.photos.add(foto);
-                }
-            }
-        });
+        for(int i=0;i<fotos.size();i++) {
+            Photos foto = new Photos();
+            foto.path = fotos.get(i);
+            foto.description = "No data";
+            foto.legend = legend;
+            foto.save();
+        }
+
+        Toast.makeText(this, "Berhasil disimpan", Toast.LENGTH_SHORT).show();
     }
 
-    public int getNextKey(Class tabel)
-    {
-        return realm.where(tabel).max("id").intValue() + 1;
-    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

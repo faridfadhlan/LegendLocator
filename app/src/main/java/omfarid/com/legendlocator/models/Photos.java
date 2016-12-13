@@ -1,50 +1,22 @@
 package omfarid.com.legendlocator.models;
 
-import java.util.Date;
-
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
+import com.orm.SugarRecord;
 
 /**
- * Created by farid on 12/13/2016.
+ * Created by BPSAdmin on 12/13/2016.
  */
 
-public class Photos extends RealmObject {
+public class Photos extends SugarRecord {
 
-    private String description;
-    @PrimaryKey private int id;
-    private String path;
-    private Date date;
+    public String path;
+    public String description;
+    public Legends legend;
 
-    public Date getDate() {
-        return date;
-    }
+    public Photos() {}
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
+    public Photos(String path, String description) {
         this.path = path;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
         this.description = description;
     }
+
 }
