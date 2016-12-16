@@ -1,6 +1,7 @@
 package omfarid.com.legendlocator.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -66,6 +67,7 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     LocationRequest mLocationRequest;
     Location mLastLocation;
     Marker mCurrLocationMarker;
+    MarkerOptions markerOptions;
     SupportMapFragment mapFrag;
     MaterialBetterSpinner sp_desa, sp_kategori;
     EditText nama, deskripsi;
@@ -173,6 +175,8 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
 
     private void simpan_legenda() {
         Legends legend = new Legends();
+        legend.latitude = markerOptions.getPosition().latitude;
+        legend.longitude = markerOptions.getPosition().longitude;
         legend.nama = nama.getText().toString();
         legend.description = deskripsi.getText().toString();
         legend.save();
@@ -184,9 +188,11 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
             foto.legend = legend;
             foto.save();
         }
-
-        Toast.makeText(this, "Berhasil disimpan", Toast.LENGTH_SHORT).show();
+        //setResult(Activity.RESULT_OK);
+        finish();
     }
+
+
 
 
 
@@ -257,12 +263,13 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(0);
+        mLocationRequest.setFastestInterval(0);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
     }
@@ -279,28 +286,35 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation = location;
-        if (mCurrLocationMarker != null) {
-            mCurrLocationMarker.remove();
-        }
+        if(location.getAccuracy() < 100.0 && location.getSpeed() < 6.95){
 
-        //Place current location marker
+            if(location.getAccuracy() < 20.0) {
+                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+            }
+
+            if(mLastLocation != location) {
+                if (mCurrLocationMarker != null) {
+                    mCurrLocationMarker.remove();
+                }
+                moveCamera(location);
+            }
+
+            mLastLocation = location;
+        }
+    }
+
+    public void moveCamera(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        markerOptions.title("Lokasiku");
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
         markerOptions.draggable(true);
         mCurrLocationMarker = mGoogleMap.addMarker(markerOptions);
 
         //move map camera
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(14));
-
-        //stop location updates
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
+        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(18));
     }
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;

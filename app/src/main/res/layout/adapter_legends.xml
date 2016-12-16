@@ -16,8 +16,7 @@
             android:id="@+id/foto"
             android:layout_width="match_parent"
             android:layout_height="108dp"
-            android:background="#000"
-            android:src="@mipmap/foto" />
+            android:background="#000" />
 
     </RelativeLayout>
 

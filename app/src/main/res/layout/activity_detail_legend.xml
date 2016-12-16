@@ -23,7 +23,7 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <ImageView
-                android:src="@mipmap/foto"
+                android:id="@+id/detilfoto"
                 android:background="#000000"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />

@@ -36,23 +36,23 @@ public class LegendWaitingFragment extends Fragment {
         View view = inflater.inflate(R.layout.waiting_legend_fragment, container, false);
         //TextView tvTitle = (TextView) view.findViewById(R.id.wf_tv);
         //tvTitle.setText("Fragment Waiting");
-        Legends legend = new Legends("1", "Masjid Baiturrahman", "Desa Sidomulyo", "1 Desember 2016 08.15");
-        List<Legends> legends = new ArrayList<>();
-        for(int i = 0; i<10;i++) {
-            legends.add(legend);
-        }
-        LegendAdapter adapter = new LegendAdapter(getActivity(), legends);
-
-        ListView lv_waiting = (ListView)view.findViewById(R.id.lv_waiting);
-        lv_waiting.setAdapter(adapter);
-
-        lv_waiting.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), DetailLegendActivity.class);
-                startActivity(intent);
-            }
-        });
+//        Legends legend = new Legends("1", "Masjid Baiturrahman", "Desa Sidomulyo", "1 Desember 2016 08.15");
+//        List<Legends> legends = new ArrayList<>();
+//        for(int i = 0; i<10;i++) {
+//            legends.add(legend);
+//        }
+//        LegendAdapter adapter = new LegendAdapter(getActivity(), legends);
+//
+//        ListView lv_waiting = (ListView)view.findViewById(R.id.lv_waiting);
+//        lv_waiting.setAdapter(adapter);
+//
+//        lv_waiting.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Intent intent = new Intent(getActivity(), DetailLegendActivity.class);
+//                startActivity(intent);
+//            }
+//        });
 
         return view;
     }
