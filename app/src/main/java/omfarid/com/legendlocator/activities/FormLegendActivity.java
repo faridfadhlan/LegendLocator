@@ -87,7 +87,6 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SugarContext.init(this);
         setContentView(R.layout.activity_form_legend);
         fotos.add("noimage");
         //imageViewThumbnail = (ImageView) findViewById(R.id.gambar);
@@ -210,7 +209,7 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
-        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
 
         //Initialize Google Play Services
@@ -220,7 +219,7 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
                     == PackageManager.PERMISSION_GRANTED) {
                 //Location Permission already granted
                 buildGoogleApiClient();
-                mGoogleMap.setMyLocationEnabled(true);
+                //mGoogleMap.setMyLocationEnabled(true);
             } else {
                 //Request Location Permission
                 checkLocationPermission();
@@ -228,7 +227,7 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         }
         else {
             buildGoogleApiClient();
-            mGoogleMap.setMyLocationEnabled(true);
+            //mGoogleMap.setMyLocationEnabled(true);
         }
 
 
@@ -258,9 +257,9 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -393,24 +392,6 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
                 }
             }
         });
-    }
-
-    private void loadImage(ImageView iv, final String path) {
-        Picasso.with(FormLegendActivity.this)
-                .load(Uri.fromFile(new File(path)))
-                .fit()
-                .centerInside()
-                .into(iv, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        Log.i(TAG, "Picasso Success Loading Thumbnail - " + path);
-                    }
-
-                    @Override
-                    public void onError() {
-                        Log.i(TAG, "Picasso Error Loading Thumbnail Small - " + path);
-                    }
-                });
     }
 
     @Override

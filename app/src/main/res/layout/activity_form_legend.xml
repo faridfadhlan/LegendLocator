@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent"
-    android:layout_width="match_parent"
-    >
+
 
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/activity_form_legend"
@@ -21,86 +19,102 @@
             android:layout_width="match_parent"
             android:layout_height="200dip" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/horizontal_recycler_view"
-            android:padding="0dp"
-            android:layout_width="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_height="wrap_content"/>
-
-        <Button
-            android:id="@+id/btn_tambah_foto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Tambahkan Foto"
-            />
-
-        <LinearLayout
-
+        <ScrollView
+            android:layout_height="match_parent"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="10dp">
+            >
 
-            <android.support.design.widget.TextInputLayout
-                android:id="@+id/nama"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content">
-                <EditText
-                    android:id="@+id/txt_nama"
-                    android:layout_width="fill_parent"
-                    style="@style/Base.V7.Widget.AppCompat.EditText"
-                    android:layout_height="wrap_content"
-                    android:hint="Nama Depan"/>
-            </android.support.design.widget.TextInputLayout>
-
-            <android.support.design.widget.TextInputLayout
-                android:id="@+id/deskripsi"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content">
-                <EditText
-                    android:id="@+id/txt_deskripsi"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Deskripsi"/>
-            </android.support.design.widget.TextInputLayout>
-
-            <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
-                android:id="@+id/sp_kategori"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="2dp"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Kategori"
-                android:textColorHint="#05ab9a"
-                app:met_floatingLabel="normal" />
+                android:orientation="vertical"
+                >
 
-            <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
-                android:id="@+id/sp_desa"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="2dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Nama Desa"
-                android:textColorHint="#05ab9a"
-                app:met_floatingLabel="normal" />
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/horizontal_recycler_view"
+                    android:padding="0dp"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btn_tambah_foto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="Tambahkan Foto"
+                    />
+
+                <LinearLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/nama"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content">
+                        <EditText
+                            android:id="@+id/txt_nama"
+                            android:layout_width="fill_parent"
+                            style="@style/Base.V7.Widget.AppCompat.EditText"
+                            android:layout_height="wrap_content"
+                            android:hint="Nama Depan"/>
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                        android:id="@+id/deskripsi"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content">
+                        <EditText
+                            android:id="@+id/txt_deskripsi"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Deskripsi"/>
+                    </android.support.design.widget.TextInputLayout>
+
+                    <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
+                        android:id="@+id/sp_kategori"
+                        android:layout_marginLeft="2dp"
+                        android:layout_marginRight="2dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Kategori"
+                        android:textColorHint="#05ab9a"
+                        app:met_floatingLabel="normal" />
+
+                    <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
+                        android:id="@+id/sp_desa"
+                        android:layout_marginLeft="2dp"
+                        android:layout_marginRight="2dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Nama Desa"
+                        android:textColorHint="#05ab9a"
+                        app:met_floatingLabel="normal" />
 
 
-        </LinearLayout>
+                </LinearLayout>
 
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_simpan"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/button_flat"
-            android:text="Simpan"/>
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btn_simpan"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/button_flat"
+                    android:text="Simpan"/>
+
+
+            </LinearLayout>
 
 
 
+
+        </ScrollView>
     </LinearLayout>
 
-</ScrollView>
+
 

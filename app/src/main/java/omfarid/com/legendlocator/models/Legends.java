@@ -13,6 +13,12 @@ public class Legends extends SugarRecord {
     public String description;
     public List<Photos> photoses;
 
+    public Legends() {}
+
+    public Legends(String nama, String description) {
+
+    }
+
     public List<Photos> getPhotos() {
         return Photos.find(Photos.class, "legend ?", getId().toString());
     }
