@@ -1,6 +1,4 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:padding="10dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,10 +8,11 @@
     <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="2"        >
+        android:layout_weight="2">
 
         <ImageView
             android:id="@+id/foto"
+            android:src="@mipmap/placeholder"
             android:layout_width="match_parent"
             android:layout_height="108dp"
             android:background="#000" />

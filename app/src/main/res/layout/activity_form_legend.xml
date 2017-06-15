@@ -25,6 +25,7 @@
             >
 
             <LinearLayout
+                android:focusableInTouchMode="true"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -46,7 +47,7 @@
                     />
 
                 <LinearLayout
-
+                    android:focusable="true"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
@@ -75,25 +76,32 @@
                             android:hint="Deskripsi"/>
                     </android.support.design.widget.TextInputLayout>
 
-                    <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
+                    <fr.ganfra.materialspinner.MaterialSpinner
                         android:id="@+id/sp_kategori"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Kategori"
-                        android:textColorHint="#05ab9a"
-                        app:met_floatingLabel="normal" />
+                        app:ms_multiline="false"
+                        app:ms_hint="Kategori"
+                        app:ms_floatingLabelColor="@color/colorPrimary"
+                        app:ms_floatingLabelText="Kategori"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content" />
 
-                    <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
+                    <fr.ganfra.materialspinner.MaterialSpinner
+                        android:id="@+id/sp_kecamatan"
+                        app:ms_multiline="false"
+                        app:ms_hint="Kecamatan"
+                        app:ms_floatingLabelColor="@color/colorPrimary"
+                        app:ms_floatingLabelText="Kecamatan"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content" />
+
+                    <fr.ganfra.materialspinner.MaterialSpinner
                         android:id="@+id/sp_desa"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Nama Desa"
-                        android:textColorHint="#05ab9a"
-                        app:met_floatingLabel="normal" />
+                        app:ms_multiline="false"
+                        app:ms_hint="Desa"
+                        app:ms_floatingLabelColor="@color/colorPrimary"
+                        app:ms_floatingLabelText="Desa"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content" />
 
 
                 </LinearLayout>
@@ -107,11 +115,7 @@
                     android:background="@drawable/button_flat"
                     android:text="Simpan"/>
 
-
             </LinearLayout>
-
-
-
 
         </ScrollView>
     </LinearLayout>

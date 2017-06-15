@@ -55,4 +55,9 @@ public class LegendPagerAdapter extends FragmentPagerAdapter {
         return fragment;
     }
 
+    @Override
+    public int getItemPosition(Object object) {
+        return POSITION_NONE;
+    }
+
 }

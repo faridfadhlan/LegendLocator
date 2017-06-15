@@ -8,10 +8,235 @@
     tools:context="omfarid.com.legendlocator.activities.DetailLegendActivity"
     tools:showIn="@layout/activity_detail_legend">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:text="@string/large_text" />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map_detail"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_margin="@dimen/text_margin"
+            android:layout_height="200dip" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_foto"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15dip"
+            android:textStyle="bold"
+            android:textAllCaps="true"
+            android:text="DETAIL LEGENDA"
+            android:layout_marginBottom="20dp"
+            />
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:shrinkColumns="*"
+            android:stretchColumns="*">
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Koordinat"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_koordinat"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Kabupaten"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_kab"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Kecamatan"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_kec"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Desa/Kelurahan"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_desa"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Kategori"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_kategori"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Deskripsi"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_deskripsi"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Status"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_status"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Waktu Capture"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_waktu"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="ID Server"
+                    android:layout_weight="1"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+
+                <TextView
+                    android:id="@+id/txt_id_server"
+                    android:layout_weight="1"
+                    android:textColor="#000000"
+                    android:padding="10dip"
+                    android:gravity="left"/>
+            </TableRow>
+
+        </TableLayout>
+
+
+    </LinearLayout>
+
+
 
 </android.support.v4.widget.NestedScrollView>

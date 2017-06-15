@@ -1,13 +1,14 @@
 package omfarid.com.legendlocator.activities;
 
 import android.Manifest;
-import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -20,12 +21,16 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.aviadmini.quickimagepick.PickCallback;
+import com.aviadmini.quickimagepick.PickSource;
+import com.aviadmini.quickimagepick.QiPick;
+import com.aviadmini.quickimagepick.UriUtils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -39,29 +44,34 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.kbeanie.imagechooser.api.ChooserType;
-import com.kbeanie.imagechooser.api.ChosenImage;
-import com.kbeanie.imagechooser.api.ChosenImages;
-import com.kbeanie.imagechooser.api.ImageChooserListener;
-import com.kbeanie.imagechooser.api.ImageChooserManager;
-import com.orm.SugarContext;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-import com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner;
+import com.orm.SugarRecord;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import fr.ganfra.materialspinner.MaterialSpinner;
+import omfarid.com.legendlocator.FileHelper;
 import omfarid.com.legendlocator.R;
 import omfarid.com.legendlocator.adapters.FotoAdapter;
-import omfarid.com.legendlocator.models.Legends;
-import omfarid.com.legendlocator.models.Photos;
+import omfarid.com.legendlocator.entities.PhotosChoosen;
+import omfarid.com.legendlocator.helpers.FaridHelpers;
+import omfarid.com.legendlocator.models.Desa;
+import omfarid.com.legendlocator.models.Foto;
+import omfarid.com.legendlocator.models.Kategori;
+import omfarid.com.legendlocator.models.Kecamatan;
+import omfarid.com.legendlocator.models.Legenda;
+import omfarid.com.legendlocator.models.Status;
 
 public class FormLegendActivity extends AppCompatActivity implements OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener, ImageChooserListener {
+        GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnMarkerDragListener,
+        LocationListener, PickCallback, GoogleMap.OnMapLongClickListener {
 
+    private Uri imageresultUri;
+    private PickSource pickSource;
     GoogleMap mGoogleMap;
     GoogleApiClient mGoogleApiClient;
     LocationRequest mLocationRequest;
@@ -69,49 +79,115 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
     Marker mCurrLocationMarker;
     MarkerOptions markerOptions;
     SupportMapFragment mapFrag;
-    MaterialBetterSpinner sp_desa, sp_kategori;
-    EditText nama, deskripsi;
-    private static int RESULT_LOAD_IMG = 1;
-    List<String> fotos = new ArrayList<String>();
+    MaterialSpinner sp_kecamatan, sp_desa, sp_kategori;
+    EditText nama;
+    EditText deskripsi;
+    List<PhotosChoosen> fotos = new ArrayList<PhotosChoosen>();
     RecyclerView horizontal_recycler_view;
-    FotoAdapter horizontalAdapter;
 
-    private final static String TAG = "ICA";
-    private ImageChooserManager imageChooserManager;
-    private String filePath;
-    private int chooserType;
-    private boolean isActivityResultOver = false;
-    private String originalFilePath;
-    private String thumbnailFilePath;
-    private String thumbnailSmallFilePath;
-    private ImageView imageViewThumbnail;
+
+
+    FotoAdapter horizontalAdapter;
+    Legenda legenda;
+    public static final int ACTION_NEW = 1;
+    public static final int ACTION_EDIT = 2;
+    int formStatus;
+    List<String> errors = new ArrayList<>();
+
+    public static final int MY_PERMISSION_REQUEST_LOCATION = 1;
+    public static final int MY_PERMISSION_WRITE_EXTERNAL_STORAGE = 2;
+    public static final int MY_PERMISSION_READ_EXTERNAL_STORAGE = 3;
+
+    private List<Kecamatan> kecamatans;
+    private List<Desa> desas;
+    private List<Foto> fotofoto;
+    private List<Kategori> kategoris;
+    private boolean init = false;
+    private static final String LEGEND_DIR_NAME = "LegendLocator";
+    private File outDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), LEGEND_DIR_NAME);
+    ArrayAdapter<Desa> desaspinneradapter;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_legend);
-        fotos.add("noimage");
-        //imageViewThumbnail = (ImageView) findViewById(R.id.gambar);
 
 
+
+        kecamatans = SugarRecord.listAll(Kecamatan.class);
+        desas = new ArrayList<Desa>();
+        kategoris = SugarRecord.listAll(Kategori.class);
+
+        sp_kecamatan = (MaterialSpinner) findViewById(R.id.sp_kecamatan);
+        sp_desa = (MaterialSpinner)findViewById(R.id.sp_desa);
+        sp_kategori = (MaterialSpinner)findViewById(R.id.sp_kategori);
+
+        nama = (EditText)findViewById(R.id.txt_nama);
+        deskripsi = (EditText)findViewById(R.id.txt_deskripsi);
+
+        // Creating adapter for spinner
+        ArrayAdapter<Kategori> kategorispinneradapter = new ArrayAdapter<Kategori>(this, android.R.layout.simple_spinner_item, kategoris);
+        kategorispinneradapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        ArrayAdapter<Kecamatan> kecamatanspinneradapter = new ArrayAdapter<Kecamatan>(this, android.R.layout.simple_spinner_item, kecamatans);
+        kecamatanspinneradapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        desaspinneradapter = new ArrayAdapter<Desa>(this, android.R.layout.simple_spinner_item, desas);
+        desaspinneradapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // attaching data adapter to spinner
+        sp_kecamatan.setAdapter(kecamatanspinneradapter);
+        sp_desa.setAdapter(desaspinneradapter);
+        sp_kategori.setAdapter(kategorispinneradapter);
+
+
+
+        switch(getIntent().getIntExtra("action", 1)) {
+            case ACTION_NEW:
+                legenda = new Legenda();
+                formStatus = ACTION_NEW;
+                break;
+            case ACTION_EDIT:
+                init = true;
+                formStatus = ACTION_EDIT;
+                legenda = SugarRecord.find(Legenda.class, "id = ?", getIntent().getStringExtra("id")).get(0);
+                fotos = legenda.getPhotosChoosen();
+                fotofoto = legenda.getFotos();
+                mLastLocation = new Location("");
+                mLastLocation.setLatitude(legenda.latitude);
+                mLastLocation.setLongitude(legenda.longitude);
+                int posi = getpositionkecamatan(kecamatans, legenda.getDesa().getKecamatan())+1;
+                sp_kecamatan.setTag(posi);
+                sp_kecamatan.setSelection(posi);
+                sp_kategori.setSelection(getpositionkategori(kategoris, legenda.getKategori())+1);
+                break;
+        }
+
+        if(savedInstanceState!=null) {
+            sp_kategori.setSelection(savedInstanceState.getInt("kat"));
+            sp_kecamatan.setTag(savedInstanceState.getInt("kec"));
+            sp_kecamatan.setSelection(savedInstanceState.getInt("kec"));
+            String[] statefotos = savedInstanceState.getStringArray("fotos");
+            for(int i=0;i<statefotos.length;i++) {
+                fotos.add(new PhotosChoosen(statefotos[i]));
+            }
+            if(savedInstanceState.getDouble("lat")!=1000) {
+                mLastLocation = new Location("");
+                mLastLocation.setLatitude(savedInstanceState.getDouble("lat"));
+                mLastLocation.setLongitude(savedInstanceState.getDouble("long"));
+            }
+
+        }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        List<String> desa = new ArrayList<String>();
-        desa.add("Nanga Pinoh");
-        desa.add("Pinoh Selatan");
-        sp_desa = (MaterialBetterSpinner)findViewById(R.id.sp_desa);
-        sp_kategori = (MaterialBetterSpinner)findViewById(R.id.sp_kategori);
-        nama = (EditText)findViewById(R.id.txt_nama);
-        deskripsi = (EditText)findViewById(R.id.txt_deskripsi);
-
-        List<String> kats = new ArrayList<String>();
-        kats.add("Pendidikan");
-        kats.add("Perbankan");
-
 
         horizontal_recycler_view = (RecyclerView)findViewById(R.id.horizontal_recycler_view);
+
+
+
+
 
         horizontalAdapter=new FotoAdapter(this, fotos);
 
@@ -121,17 +197,7 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         horizontal_recycler_view.setLayoutManager(horizontalLayoutManagaer);
         horizontal_recycler_view.setAdapter(horizontalAdapter);
 
-        // Creating adapter for spinner
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, desa);
-        ArrayAdapter<String> katsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, kats);
 
-        // Drop down layout style - list view with radio button
-        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        katsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        // attaching data adapter to spinner
-        sp_desa.setAdapter(dataAdapter);
-        sp_kategori.setAdapter(katsAdapter);
 
         mapFrag = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapnya);
@@ -141,21 +207,13 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         addphoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            == PackageManager.PERMISSION_GRANTED) {
-                        //Location Permission already granted
-                        chooseImage();
-                    } else {
-                        //Request Location Permission
-                        checkLocationPermission();
-                    }
-                }
-                else {
-                    chooseImage();
-                }
-
+                QiPick.in(FormLegendActivity.this).fromMultipleSources("All sources", PickSource.CAMERA, PickSource.GALLERY);
+//                QiPick.in(FormLegendActivity.this)
+//                        .allowOnlyLocalContent(true)
+//                        .withAllImageMimeTypesAllowed()
+//                        .withCameraPicsDirectory(outDir)
+//                        .withRequestType(1)
+//                        .fromMultipleSources("All sources", PickSource.CAMERA, PickSource.GALLERY);
             }
         });
 
@@ -163,7 +221,55 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         btn_sipman.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                simpan_legenda();
+                if(valid()) {
+                    simpan_legenda();
+                }
+                else {
+                    showDialogError();
+                }
+            }
+        });
+
+        nama.setText(legenda.nama);
+        deskripsi.setText(legenda.deskripsi);
+
+        sp_kecamatan.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                if(position >= 0) {
+                    desas.clear();
+                    desas.addAll(kecamatans.get(position).getDesas());
+                    //desaspinneradapter.clear();
+                    //desaspinneradapter = new ArrayAdapter<Desa>(getApplicationContext(), android.R.layout.simple_spinner_item, desas);
+                    //Log.i("sigpodes", desaspinneradapter.getItem(position).toString());
+                    desaspinneradapter.notifyDataSetChanged();
+                    sp_desa.setSelection(0);
+
+                    if((Integer)sp_kecamatan.getTag() == position) {
+                        if(init) {
+                            sp_desa.setSelection(getpositiondesa(desas, legenda.getDesa())+1);
+                        }
+
+                        if(savedInstanceState!=null) {
+                            sp_desa.setSelection(savedInstanceState.getInt("desa"));
+                        }
+
+                    }
+                }
+
+                else {
+                    desas.clear();
+                    desaspinneradapter.notifyDataSetChanged();
+                    sp_desa.setSelection(0);
+                }
+
+                sp_kecamatan.setTag(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
             }
         });
 
@@ -172,92 +278,197 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
 
     }
 
+    public void showDialogError() {
+        new AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setMessage(FaridHelpers.joinList(errors))
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setCancelable(false)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                    }
+                })
+                .show();
+    }
+
+
+    public boolean valid() {
+
+        boolean benar = true;
+        errors.clear();
+
+        int desa = sp_desa.getSelectedItemPosition();
+        int kategori = sp_kategori.getSelectedItemPosition();
+        legenda.nama = nama.getText().toString();
+        legenda.deskripsi = deskripsi.getText().toString();
+
+        if(mLastLocation == null) {
+            errors.add("Lokasi belum ditemukan");
+            benar = false;
+        }
+
+        if(legenda.nama.equals("")) {
+            errors.add("Nama masih kosong");
+            benar = false;
+        }
+
+        if(legenda.deskripsi.equals("")) {
+            errors.add("Deskripsi masihkosong");
+            benar = false;
+        }
+
+        if(desa == 0) {
+            errors.add("Wilayah belum dipilih");
+            benar = false;
+        }
+
+        if(kategori == 0) {
+            errors.add("Kategori belum dipilih");
+            benar = false;
+        }
+
+        return benar;
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+
+    private void showToast(Context context, String text) {
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show();
+    }
+
+    private int getpositionkecamatan(List<Kecamatan> kecamatans, Kecamatan kecamatan) {
+        for(int i=0;i<kecamatans.size();i++) {
+            if(kecamatans.get(i).getFullKodeKecamatan().equals(kecamatan.getFullKodeKecamatan())) return i;
+        }
+        return -1;
+    }
+
+    private int getpositiondesa(List<Desa> desas, Desa desa) {
+        for(int i=0;i<desas.size();i++) {
+            if(desas.get(i).getFullKodeDesa().equals(desa.getFullKodeDesa())) return i;
+        }
+        return -1;
+    }
+
+    private int getpositionkategori(List<Kategori> kategoris, Kategori kategori) {
+        for(int i=0;i<kategoris.size();i++) {
+            if(kategoris.get(i).equals(kategori)) return i;
+        }
+        return -1;
+    }
+
 
     private void simpan_legenda() {
-        Legends legend = new Legends();
-        legend.latitude = markerOptions.getPosition().latitude;
-        legend.longitude = markerOptions.getPosition().longitude;
-        legend.nama = nama.getText().toString();
-        legend.description = deskripsi.getText().toString();
-        legend.save();
 
-        for(int i=0;i<fotos.size();i++) {
-            Photos foto = new Photos();
-            foto.path = fotos.get(i);
-            foto.description = "No data";
-            foto.legend = legend;
-            foto.save();
+        Desa desa = desas.get(sp_desa.getSelectedItemPosition()-1);
+
+        legenda.kodeprop = desa.kodeprop;
+        legenda.kodekab = desa.kodekab;
+        legenda.kodekec = desa.kodekec;
+        legenda.kodedesa = desa.kodedesa;
+
+        legenda.kodekategori = kategoris.get(sp_kategori.getSelectedItemPosition()-1).kode;
+        legenda.nama = nama.getText().toString();
+        legenda.deskripsi = deskripsi.getText().toString();
+        legenda.latitude = mCurrLocationMarker.getPosition().latitude;
+        legenda.longitude = mCurrLocationMarker.getPosition().longitude;
+        legenda.kodestatus = Status.TERSIMPAN;
+        if(formStatus == ACTION_NEW) legenda.waktu = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        SugarRecord.save(legenda);
+
+        Long legendaid = legenda.getId();
+
+        if(fotofoto != null) SugarRecord.deleteInTx(fotofoto);
+
+        if(fotos.size()>0) {
+            for (int i = 0; i < fotos.size(); i++) {
+                Foto foto = new Foto();
+                foto.pathori = fotos.get(i).path;
+                foto.paththum = fotos.get(i).path;
+                foto.deskripsi = "";
+                foto.legendaid = legendaid;
+                foto.waktu = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                SugarRecord.save(foto);
+            }
         }
         //setResult(Activity.RESULT_OK);
         finish();
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("kat", sp_kategori.getSelectedItemPosition());
+        outState.putInt("kec", sp_kecamatan.getSelectedItemPosition());
+        outState.putInt("desa", sp_desa.getSelectedItemPosition());
+        String[] statefotos = new String[fotos.size()];
+        for(int i=0;i<fotos.size();i++) {
+            statefotos[i] = fotos.get(i).path;
+        }
+        outState.putStringArray("fotos", statefotos);
+        outState.putDouble("lat", mCurrLocationMarker==null?1000:mCurrLocationMarker.getPosition().latitude);
+        outState.putDouble("long", mCurrLocationMarker==null?1000:mCurrLocationMarker.getPosition().longitude);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
 
 
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.i(TAG, "OnActivityResult");
-        Log.i(TAG, "File Path : " + filePath);
-        Log.i(TAG, "Chooser Type: " + chooserType);
-        if (resultCode == RESULT_OK
-                && (requestCode == ChooserType.REQUEST_PICK_PICTURE || requestCode == ChooserType.REQUEST_CAPTURE_PICTURE)) {
-            if (imageChooserManager == null) {
-                //reinitializeImageChooser();
-            }
-            imageChooserManager.submit(requestCode, data);
-        } else {
-            //pbar.setVisibility(View.GONE);
-        }
+        super.onActivityResult(requestCode, resultCode, data);
+        QiPick.handleActivityResult(getApplicationContext(), requestCode, resultCode, data, this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mGoogleMap.setOnMapLongClickListener(this);
 
 
-        //Initialize Google Play Services
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                //Location Permission already granted
+        if(mLastLocation == null) {
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    checkLocationPermission();
+                }
+                else {
+                    buildGoogleApiClient();
+                }
+            }
+            else {
                 buildGoogleApiClient();
-                //mGoogleMap.setMyLocationEnabled(true);
-            } else {
-                //Request Location Permission
-                checkLocationPermission();
             }
         }
         else {
-            buildGoogleApiClient();
-            //mGoogleMap.setMyLocationEnabled(true);
+            moveCamera(mLastLocation);
         }
-
-
-//        LatLng pontianak = new LatLng(-0.0353948,109.2615099);
-//
-//        MarkerOptions markerOptions = new MarkerOptions();
-//        markerOptions.position(pontianak);
-//        markerOptions.title("Current Position");
-//        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-//        markerOptions.draggable(true);
-//        mGoogleMap.addMarker(markerOptions);
-//
-//
-//        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(pontianak));
-//        mGoogleMap.moveCamera(CameraUpdateFactory.zoomTo(12));
     }
 
     protected synchronized void buildGoogleApiClient() {
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
         mGoogleApiClient.connect();
+
+
+
     }
 
     @Override
@@ -266,10 +477,12 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         mLocationRequest.setInterval(0);
         mLocationRequest.setFastestInterval(0);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
     }
@@ -286,19 +499,22 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
 
     @Override
     public void onLocationChanged(Location location) {
-        if(location.getAccuracy() < 100.0 && location.getSpeed() < 6.95){
+//        moveCamera(location);
+//        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+//        mLastLocation = location;
 
-            if(location.getAccuracy() < 20.0) {
+        if(location.getAccuracy() < 10.0 && location.getSpeed() < 6.95){
+
+            //if(location.getAccuracy() < 10.0) {
                 LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            }
+            //}
 
-            if(mLastLocation != location) {
+            if(mLastLocation != location || mLastLocation == null) {
                 if (mCurrLocationMarker != null) {
                     mCurrLocationMarker.remove();
                 }
                 moveCamera(location);
             }
-
             mLastLocation = location;
         }
     }
@@ -307,52 +523,21 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
+
         markerOptions.title("Lokasiku");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
         markerOptions.draggable(true);
+
         mCurrLocationMarker = mGoogleMap.addMarker(markerOptions);
+        mGoogleMap.setOnMarkerDragListener(this);
 
         //move map camera
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(18));
     }
 
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    private void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                new AlertDialog.Builder(this)
-                        .setTitle("Location Permission Needed")
-                        .setMessage("This app needs the Location permission, please accept to use location functionality")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                //Prompt the user once explanation has been shown
-                                ActivityCompat.requestPermissions(FormLegendActivity.this,
-                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                        MY_PERMISSIONS_REQUEST_LOCATION );
-                            }
-                        })
-                        .create()
-                        .show();
 
 
-            } else {
-                // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_LOCATION );
-            }
-        }
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -365,62 +550,269 @@ public class FormLegendActivity extends AppCompatActivity implements OnMapReadyC
         return super.onOptionsItemSelected(item);
     }
 
-    private void chooseImage() {
-        chooserType = ChooserType.REQUEST_PICK_PICTURE;
-        imageChooserManager = new ImageChooserManager(this,
-                ChooserType.REQUEST_PICK_PICTURE, true);
-        Bundle bundle = new Bundle();
-        bundle.putBoolean(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        imageChooserManager.setExtras(bundle);
-        imageChooserManager.setImageChooserListener(this);
-        imageChooserManager.clearOldFiles();
-        try {
-            filePath = imageChooserManager.choose();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+        mCurrLocationMarker = marker;
+        Toast.makeText(this, marker.getPosition().latitude+", "+marker.getPosition().longitude, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onImagePicked(@NonNull PickSource pickSource, int i, @NonNull Uri uri) {
+        this.pickSource = pickSource;
+        this.imageresultUri = uri;
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                checkWritePermission();
+            }
+            else {
+                saveImageResult();
+            }
+        }
+        else {
+            saveImageResult();
+        }
+
+    }
+
+    private void saveImageResult() {
+        String path = new String();
+        if(this.pickSource == PickSource.CAMERA) {
+            if (!outDir.exists()){
+                outDir.mkdirs();
+            }
+            String nama = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File file = new File(outDir, "IMG_" + nama + ".jpg");
+
+            try {
+                UriUtils.saveContentToFile(this, this.imageresultUri, file);
+                path = file.getAbsolutePath();
+                Log.i("sigpodes", path);
+            } catch (IOException e) {
+                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+            }
+        }
+
+        else {
+            path = FileHelper.getRealPath(this.imageresultUri, this);
+        }
+
+        fotos.add(new PhotosChoosen(path));
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                checkReadPermission();
+            }
+            else {
+                horizontalAdapter.notifyDataSetChanged();
+            }
+        }
+
+        else horizontalAdapter.notifyDataSetChanged();
+
+    }
+
+    private void checkLocationPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+            // Show an explanation to the user *asynchronously* -- don't block
+            // this thread waiting for the user's response! After the user
+            // sees the explanation, try again to request the permission.
+            new AlertDialog.Builder(this)
+                    .setTitle("Izin Lokasi")
+                    .setMessage("Legend Locator membutuhkan izin untuk mengakses lokasi Anda.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            //Prompt the user once explanation has been shown
+                            ActivityCompat.requestPermissions(FormLegendActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                    MY_PERMISSION_REQUEST_LOCATION );
+                        }
+                    })
+                    .create()
+                    .show();
+
+
+        } else {
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSION_REQUEST_LOCATION );
+        }
+    }
+
+    private void checkWritePermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                new AlertDialog.Builder(this)
+                        .setTitle("Izin Penyimpanan File")
+                        .setMessage("Legend Locator membutuhkan izin untuk menyimpan gambar dari kamera.")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //Prompt the user once explanation has been shown
+                                ActivityCompat.requestPermissions(FormLegendActivity.this,
+                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        MY_PERMISSION_WRITE_EXTERNAL_STORAGE );
+                            }
+                        })
+                        .create()
+                        .show();
+
+
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSION_WRITE_EXTERNAL_STORAGE );
+            }
+
+    }
+
+    private void checkReadPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+            // Show an explanation to the user *asynchronously* -- don't block
+            // this thread waiting for the user's response! After the user
+            // sees the explanation, try again to request the permission.
+            new AlertDialog.Builder(this)
+                    .setTitle("Izin Membaca File")
+                    .setMessage("Legend Locator membutuhkan izin untuk mengakses gambar dari penyimpanan.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            //Prompt the user once explanation has been shown
+                            ActivityCompat.requestPermissions(FormLegendActivity.this,
+                                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                    MY_PERMISSION_READ_EXTERNAL_STORAGE );
+                        }
+                    })
+                    .create()
+                    .show();
+
+
+        } else {
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    MY_PERMISSION_READ_EXTERNAL_STORAGE );
+        }
+
+    }
+
+    @Override
+    public void onMultipleImagesPicked(int i, @NonNull List<Uri> list) {
+
+    }
+
+    @Override
+    public void onError(@NonNull PickSource pickSource, int i, @NonNull String s) {
+
+    }
+
+    @Override
+    public void onCancel(@NonNull PickSource pickSource, int i) {
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case MY_PERMISSION_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    buildGoogleApiClient();
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            case MY_PERMISSION_WRITE_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    saveImageResult();
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            case MY_PERMISSION_READ_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    horizontalAdapter.notifyDataSetChanged();
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
         }
     }
 
     @Override
-    public void onImageChosen(final ChosenImage image) {
-        runOnUiThread(new Runnable() {
+    public void onMapLongClick(LatLng latLng) {
 
-            @Override
-            public void run() {
-                Log.i(TAG, "Chosen Image: O - " + image.getFilePathOriginal());
-                Log.i(TAG, "Chosen Image: T - " + image.getFileThumbnail());
-                Log.i(TAG, "Chosen Image: Ts - " + image.getFileThumbnailSmall());
-                isActivityResultOver = true;
-                originalFilePath = image.getFilePathOriginal();
-                thumbnailFilePath = image.getFileThumbnail();
-                if (image != null) {
-                    if(fotos.get(0).equals("noimage")) fotos.remove(0);
-                    fotos.add(image.getFileThumbnail());
-                    horizontalAdapter.notifyDataSetChanged();
-//                    Log.i(TAG, "Chosen Image: Is not null");
-//                    loadImage(imageViewThumbnail, image.getFileThumbnail());
-                } else {
-                    Log.i(TAG, "Chosen Image: Is null");
-                }
-            }
-        });
-    }
 
-    @Override
-    public void onError(String s) {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 
-    }
+        Location loc = new Location("");
+        loc.setLongitude(latLng.longitude);
+        loc.setLatitude(latLng.latitude);
 
-    @Override
-    public void onImagesChosen(final ChosenImages images) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.i(TAG, "On Images Chosen: " + images.size());
-                onImageChosen(images.getImage(0));
-            }
-        });
+        if (mCurrLocationMarker != null) {
+                mCurrLocationMarker.remove();
+        }
+
+        mLastLocation = loc;
+
+
+        //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+
+        markerOptions.title("Lokasiku");
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        markerOptions.draggable(true);
+
+        mCurrLocationMarker = mGoogleMap.addMarker(markerOptions);
+        mGoogleMap.setOnMarkerDragListener(this);
     }
 }

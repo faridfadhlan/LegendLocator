@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1007422234194",
+    "firebase_url": "https://legendlocator-e4aff.firebaseio.com",
+    "project_id": "legendlocator-e4aff",
+    "storage_bucket": "legendlocator-e4aff.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1007422234194:android:f5d55c858ae4955f",
+        "android_client_info": {
+          "package_name": "omfarid.com.legendlocator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1007422234194-khdghgihu33pl1dub7nnkiadcc5trpqh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "omfarid.com.legendlocator",
+            "certificate_hash": "08723FB92D5B6C2E67A4B44D2EE00FE5C7189F38"
+          }
+        },
+        {
+          "client_id": "1007422234194-e7pia8724dpivmmbngs4jenivugert3r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhOaHTXWkepwUJ_glSt3BA1_64JrG0s78"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1007422234194-e7pia8724dpivmmbngs4jenivugert3r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
