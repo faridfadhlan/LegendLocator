@@ -2,7 +2,9 @@ package omfarid.com.legendlocator.fragments.legends;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -18,12 +20,17 @@ import android.widget.Toast;
 
 import com.orm.SugarRecord;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import omfarid.com.legendlocator.R;
 import omfarid.com.legendlocator.activities.DetailLegendActivity;
 import omfarid.com.legendlocator.activities.FormLegendActivity;
 import omfarid.com.legendlocator.adapters.LegendaAdapter;
+import omfarid.com.legendlocator.helpers.FaridHelpers;
 import omfarid.com.legendlocator.models.Foto;
 import omfarid.com.legendlocator.models.Legenda;
 import omfarid.com.legendlocator.models.Status;
@@ -67,10 +74,45 @@ public class LegendSavedFragment extends Fragment {
         });
 
         registerForContextMenu(lv_saved);
-
+        try {
+            resizeImages();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
         return view;
+    }
+
+    public void resizeImages() throws IOException {
+        for(int i=0;i<legendas.size();i++) {
+            for(int j=0;j<legendas.get(i).getFotos().size();j++) {
+                File file = new File(legendas.get(i).getFotos().get(j).paththum);
+                if(file.length() > (1024*600)){
+                    File f_awal = new File(legendas.get(i).getFotos().get(j).paththum);
+                    File f_akhir = f_awal;
+                    Foto f = legendas.get(i).getFotos().get(j);
+                    if(!f.paththum.contains("LegendLocator")) {
+                        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "LegendLocator");
+                        if (!dir.exists()){
+                            dir.mkdirs();
+                        }
+                        String nama = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                        f_akhir = new File(dir,  nama + "-" + j +".jpg");
+                        f.paththum = f_akhir.getAbsolutePath();
+                        SugarRecord.save(f);
+                    }
+                    FaridHelpers.resize(getActivity(), Uri.fromFile(f_awal), f_akhir);
+
+
+
+                }
+
+            }
+
+            //legendas.get(i).getFotos().get(0).paththum =
+            //SugarRecord.save(legendas.get(i));
+        }
     }
 
     @Override

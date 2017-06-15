@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -27,6 +28,8 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.orm.SugarRecord;
+import com.rustamg.filedialogs.FileDialog;
+import com.rustamg.filedialogs.SaveFileDialog;
 
 import net.gotev.uploadservice.Logger;
 import net.gotev.uploadservice.MultipartUploadRequest;
@@ -39,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -62,7 +66,8 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         LegendFragment.OnFragmentInteractionListener,
         UploadStatusDelegate,
-        Callback
+        Callback,
+        FileDialog.OnFileSelectedListener
 {
     Fragment fragment = new Fragment();
     NavigationView navigationView;
@@ -150,6 +155,10 @@ public class MainActivity extends AppCompatActivity
             }
 
             return true;
+        }
+
+        else if(id == R.id.action_export) {
+            showFileDialog(new SaveFileDialog(), SaveFileDialog.class.getName());
         }
 
         return super.onOptionsItemSelected(item);
@@ -347,26 +356,36 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onError(UploadInfo uploadInfo, Exception exception) {
-
+        FaridHelpers.showAlertDialog(this, "error", exception.toString());
     }
 
     @Override
     public void onCompleted(UploadInfo uploadInfo, ServerResponse serverResponse) {
         Log.i("sigpodes", serverResponse.getBodyAsString());
-        try {
-            JSONObject result = new JSONObject(serverResponse.getBodyAsString());
-            if(result.getString("status").equals("sukses")) {
-                Legenda legenda = map.get(uploadInfo.getUploadId());
-                legenda.kodestatus = "2";
-                legenda.idserver = result.getString("id_server");
-                SugarRecord.save(legenda);
-            }
-            else {
-                FaridHelpers.showAlertDialog(this, "Error", "Gagal Upload");
+
+        int status = serverResponse.getHttpCode();
+
+        if(status == 200) {
+
+            try {
+                JSONObject result = new JSONObject(serverResponse.getBodyAsString());
+                if (result.getString("status").equals("sukses")) {
+                    Legenda legenda = map.get(uploadInfo.getUploadId());
+                    legenda.kodestatus = "2";
+                    legenda.idserver = result.getString("id_server");
+                    SugarRecord.save(legenda);
+                } else {
+                    FaridHelpers.showAlertDialog(this, "Error", "Gagal Upload");
+                }
+
+            } catch (JSONException e) {
+                FaridHelpers.showAlertDialog(this, "Error", e.toString());
             }
 
-        } catch (JSONException e) {
-            e.printStackTrace();
+        }
+
+        else {
+            FaridHelpers.showAlertDialog(this, "Error", "Error "+status);
         }
 
         selectItem(R.id.nav_legenda);
@@ -430,5 +449,19 @@ public class MainActivity extends AppCompatActivity
                 selectItem(R.id.nav_legenda);
             }
         });
+    }
+
+    private void showFileDialog(FileDialog dialog, String tag) {
+
+        //Bundle args = new Bundle();
+        //args.putString(FileDialog.EXTENSION, "zip");
+        //dialog.setArguments(args);
+        //dialog.setStyle(DialogFragment.STYLE_NO_TITLE, R.style.Theme_Sample);
+        dialog.show(getSupportFragmentManager(), tag);
+    }
+
+    @Override
+    public void onFileSelected(FileDialog dialog, File file) {
+        Toast.makeText(this, getString(R.string.app_name, file.getName()), Toast.LENGTH_LONG).show();
     }
 }
